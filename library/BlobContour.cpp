@@ -157,23 +157,18 @@ double CBlobContour::GetArea()
 //! Get contour moment (p,q up to MAX_CALCULATED_MOMENTS)
 double CBlobContour::GetMoment(int p, int q)
 {
-	// is a valid moment?
-	if ( p < 0 || q < 0 || p > MAX_MOMENTS_ORDER || q > MAX_MOMENTS_ORDER )
-	{
+	// Assuming m_moments is of type cv::Moments and has been calculated earlier
+    if ( p < 0 || q < 0 || p > MAX_MOMENTS_ORDER || q > MAX_MOMENTS_ORDER ) { 
 		return -1;
 	}
-
-	if( IsEmpty() )
-		return 0;
-
-	// it is calculated?
-	if( m_moments.m00 == -1)
-	{
-		//cvMoments( GetContourPoints(), &m_moments );
-		m_moments = moments(GetContourPoints(),true);
-	}
-		
-	return cvGetSpatialMoment( &m_moments, p, q );
+	else if (p == 0 && q == 0) return m_moments.m00;
+    else if (p == 1 && q == 0) return m_moments.m10;
+    else if (p == 0 && q == 1) return m_moments.m01;
+    // Add more conditions for other moments you need
+    else {
+        // Handle error or unsupported moments
+		return -1;
+    }
 
 }
 

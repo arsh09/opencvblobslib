@@ -46,7 +46,7 @@ class CBlob
 	friend class myCompLabeler;
 public:
 	CBlob();
-	CBlob( t_labelType id, cv::Point startPoint, CvSize originalImageSize );
+	CBlob( t_labelType id, cv::Point startPoint, cv::Size originalImageSize );
 	~CBlob();
 
 	//! Copy constructor
@@ -82,7 +82,7 @@ public:
 		m_id=newID;
 	}
 	//! > 0 for extern blobs, 0 if not
-	int	  Exterior( IplImage *mask, bool xBorder = true, bool yBorder = true );
+	int	  Exterior( cv::Mat *mask, bool xBorder = true, bool yBorder = true );
 	//! opencv2 Interface
 	int	  Exterior( cv::Mat mask, bool xBorder = true, bool yBorder = true );
 	//Computes the area of the blob.
@@ -96,19 +96,19 @@ public:
 	double Moment(int p, int q);
 
 	//! Compute extern perimeter 
-	double ExternPerimeter( IplImage *mask, bool xBorder  = true, bool yBorder = true );
+	double ExternPerimeter( cv::Mat *mask, bool xBorder  = true, bool yBorder = true );
 	//! opencv2 interface
 	double ExternPerimeter( cv::Mat mask, bool xBorder  = true, bool yBorder = true );
 	
 	//! Get mean grey color
 	//(Warning: use MeanStdDev for simultaneous computation of mean and std. dev, and for RGB images).
-	double Mean( IplImage *image );
+	double Mean( cv::Mat *image );
 	//! opencv2 interface
 	//(Warning: use MeanStdDev for simultaneous computation of mean and std. dev, and for RGB images).
 	double Mean( cv::Mat image );
 	//! Get standard deviation grey color
 	//(Warning: use MeanStdDev for simultaneous computation of mean and std. dev, and for RGB images).
-	double StdDev( IplImage *image );
+	double StdDev( cv::Mat *image );
 	//! opencv2 interface
 	//(Warning: use MeanStdDev for simultaneous computation of mean and std. dev, and for RGB images).
 	double StdDev( cv::Mat image );
@@ -132,17 +132,17 @@ public:
 	//!  Paints the blob in an image
 	//!	intContours - determines wheter to draw the holes of the blob (true) or not (false)
 	//!	srcImage - image from where to copy the holes contents. If unassigned and intContours is true, the internal pixels will be set to black.
-	void FillBlob( IplImage *image, CvScalar color, int offsetX = 0, int offsetY = 0, bool intContours = false, const IplImage *srcImage = NULL );
-	void FillBlob( cv::Mat image, CvScalar color, int offsetX = 0, int offsetY = 0, bool intContours = false, const cv::Mat srcImage = cv::Mat() );
+	void FillBlob( cv::Mat *image, cv::Scalar color, int offsetX = 0, int offsetY = 0, bool intContours = false, const cv::Mat *srcImage = NULL );
+	void FillBlob( cv::Mat image, cv::Scalar color, int offsetX = 0, int offsetY = 0, bool intContours = false, const cv::Mat srcImage = cv::Mat() );
 	
 	//! Joins a blob to current one
 	//! NOTE: All the data is copied, a new blob is created and joined to the caller one.
 	void JoinBlob( CBlob *blob);
 
 	//! Get bounding box
-	CvRect GetBoundingBox();
+	cv::Rect GetBoundingBox();
 	//! Get bounding ellipse
-	CvBox2D GetEllipse();
+	cv::RotatedRect GetEllipse();
 
 	//! Minimun X	
 	double MinX()
@@ -226,13 +226,13 @@ private:
 	//! Standard deviation from gray color blob distribution
 	double m_stdDevGray;
 	//! Bounding box
-	CvRect m_boundingBox;
+	cv::Rect m_boundingBox;
 	//! Bounding ellipse
-	CvBox2D m_ellipse;
+	cv::RotatedRect m_ellipse;
 
 	//! Sizes from image where blob is extracted
-	CvSize m_originalImageSize;
-	public: CvSize OriginalImageSize() const { return m_originalImageSize; }
+	cv::Size m_originalImageSize;
+	public: cv::Size OriginalImageSize() const { return m_originalImageSize; }
 	public: void OriginalImageSize(int width, int height) { m_originalImageSize.width = width; m_originalImageSize.height = height; }
 
 

@@ -81,16 +81,17 @@ CBlobResult::CBlobResult()
 - MODIFICATION:
 	Oct-2013. Luca Nardelli and Saverio Murgia. Changed to comply with reimplemented labelling algorithm
 */
-CBlobResult::CBlobResult(IplImage *source, IplImage *mask,int numThreads)
+CBlobResult::CBlobResult(cv::Mat *source, cv::Mat *mask,int numThreads)
 {
 	if(mask!=NULL){
-		Mat temp = Mat::zeros(Size(source->width,source->height),CV_8UC1);
-		cvarrToMat(source).copyTo(temp,cvarrToMat(mask));
+		Mat temp = Mat::zeros(Size(source->cols,source->rows),CV_8UC1);
+		// cv::cvarrToMat(source).copyTo(temp,cv::cvarrToMat(mask));
+		temp = source->clone();
 		compLabeler.set(numThreads,temp);
 		compLabeler.doLabeling(m_blobs);
 	}
 	else{
-		Mat temp = Mat::zeros(Size(source->width,source->height),CV_8UC1);
+		Mat temp = Mat::zeros(Size(source->cols,source->rows),CV_8UC1);
 		compLabeler.set(numThreads,temp);
 		compLabeler.doLabeling(m_blobs);
 	}

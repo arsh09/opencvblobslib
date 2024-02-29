@@ -24,6 +24,7 @@ MODIFICATIONS (Modification, Author, Date):
 #include <math.h>
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <deque>
 #include <limits.h>
 #include <stdio.h>
@@ -92,7 +93,7 @@ public:
 
 	//Constructor, opencv 1.0 and 2.0 interfaces.
 	CBlobResult();
-	CBlobResult(IplImage *source, IplImage *mask = NULL, int numThreads=1);
+	CBlobResult(cv::Mat *source, cv::Mat *mask = NULL, int numThreads=1);
 	CBlobResult(cv::Mat &source, const cv::Mat &mask = cv::Mat(),int numThreads=1);
 	CBlobResult( const CBlobResult &source );
 	//! Destructor

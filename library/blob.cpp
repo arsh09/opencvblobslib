@@ -32,7 +32,7 @@ CBlob::CBlob()
 	isJoined=false;
 	startPassed=false;
 }
-CBlob::CBlob( t_labelType id, cv::Point startPoint, CvSize originalImageSize ):m_externalContour(startPoint,originalImageSize)
+CBlob::CBlob( t_labelType id, cv::Point startPoint, cv::Size originalImageSize ):m_externalContour(startPoint,originalImageSize)
 {
 	m_externalContour.parent=this;
 	m_id = id;
@@ -248,7 +248,7 @@ double CBlob::Perimeter()
 - DATA DE CREACI�: 2008/05/06
 - MODIFICACI�: Data. Autor. Descripci�.
 */
-int	CBlob::Exterior(IplImage *mask, bool xBorder /* = true */, bool yBorder /* = true */)
+int	CBlob::Exterior(cv::Mat *mask, bool xBorder /* = true */, bool yBorder /* = true */)
 {
 	int result = 0;
 	if (ExternPerimeter(mask, xBorder, yBorder ) > 0 )
@@ -260,7 +260,7 @@ int	CBlob::Exterior(IplImage *mask, bool xBorder /* = true */, bool yBorder /* =
 }
 int	CBlob::Exterior(Mat mask, bool xBorder /* = true */, bool yBorder /* = true */)
 {
-	IplImage temp = (IplImage) mask;
+	cv::Mat temp = (cv::Mat) mask;
 	return Exterior(&temp, xBorder, yBorder);	 
 }
 /**
@@ -281,7 +281,7 @@ int	CBlob::Exterior(Mat mask, bool xBorder /* = true */, bool yBorder /* = true 
 - NOTA: If CBlobContour::GetContourPoints aproximates contours with a method different that NONE,
 		this function will not give correct results
 */
-double CBlob::ExternPerimeter( IplImage *maskImage, bool xBorder /* = true */, bool yBorder /* = true */)
+double CBlob::ExternPerimeter( cv::Mat *maskImage, bool xBorder /* = true */, bool yBorder /* = true */)
 {
 	t_PointList externContour, externalPoints;
 	Point actualPoint, previousPoint;
@@ -339,9 +339,10 @@ double CBlob::ExternPerimeter( IplImage *maskImage, bool xBorder /* = true */, b
 			if( maskImage != NULL )
 			{
 				// verify if some of 8-connected neighbours is black in mask
-				char *pMask;
+				uchar *pMask;
 				
-				pMask = (maskImage->imageData + actualPoint.x - 1 + (actualPoint.y - 1) * maskImage->widthStep);
+				pMask = (maskImage->data + actualPoint.x - 1 + (actualPoint.y - 1) * maskImage->step);
+				// pMask = maskImage->data + (actualPoint.y - 1) * maskImage->step + (actualPoint.x - 1);				
 				
 				for ( int i = 0; i < 3; i++, pMask++ )
 				{
@@ -354,7 +355,7 @@ double CBlob::ExternPerimeter( IplImage *maskImage, bool xBorder /* = true */, b
 				
 				if(!find)
 				{
-					pMask = (maskImage->imageData + actualPoint.x - 1 + (actualPoint.y ) * maskImage->widthStep);
+					pMask = (maskImage->data + actualPoint.x - 1 + (actualPoint.y ) * maskImage->step);
 				
 					for ( int i = 0; i < 3; i++, pMask++ )
 					{
@@ -368,7 +369,7 @@ double CBlob::ExternPerimeter( IplImage *maskImage, bool xBorder /* = true */, b
 			
 				if(!find)
 				{
-					pMask = (maskImage->imageData + actualPoint.x - 1 + (actualPoint.y + 1) * maskImage->widthStep);
+					pMask = (maskImage->data + actualPoint.x - 1 + (actualPoint.y + 1) * maskImage->step);
 
 					for ( int i = 0; i < 3; i++, pMask++ )
 					{
@@ -414,7 +415,7 @@ double CBlob::ExternPerimeter( Mat maskImage, bool xBorder /* = true */, bool yB
 		return ExternPerimeter( NULL, xBorder /* = true */, yBorder /* = true */);
 	}
 	else{
-		IplImage temp = (IplImage) maskImage;
+		cv::Mat temp = (cv::Mat) maskImage;
 		return ExternPerimeter( &temp, xBorder /* = true */, yBorder /* = true */);
 	}
 }
@@ -455,84 +456,69 @@ double CBlob::Moment(int p, int q)
 - DATA DE CREACI�: 2008/05/06
 - MODIFICACI�: Data. Autor. Descripci�.
 */
-double CBlob::Mean( IplImage *image )
+double CBlob::Mean( cv::Mat *image )
 {
 	// Create a mask with same size as blob bounding box
-	IplImage *mask;
-	CvScalar mean, std;
+	cv::Mat mask;
+	cv::Scalar mean, std;
 	cv::Point offset;
 
 	GetBoundingBox();
 	
-	if (m_boundingBox.height == 0 ||m_boundingBox.width == 0 || !CV_IS_IMAGE( image ))
+	if (m_boundingBox.height == 0 ||m_boundingBox.width == 0 || image->empty())
 	{
 		m_meanGray = 0;
 		return m_meanGray;
 	}
 
 	// apply ROI and mask to input image to compute mean gray and standard deviation
-	mask = cvCreateImage( cvSize(m_boundingBox.width, m_boundingBox.height), IPL_DEPTH_8U, 1);
-	cvSetZero(mask);
+	mask = cv::Mat::zeros(cv::Size(m_boundingBox.width, m_boundingBox.height), CV_8UC1);
 
 	offset.x = -m_boundingBox.x;
 	offset.y = -m_boundingBox.y;
 
-	Mat mask_mat = cvarrToMat(mask);
+	Mat mask_mat = mask.clone() ; // cv::cvarrToMat(mask);
       
 	//If joined
 	if(isJoined){
 		list<CBlob *>::iterator it,en = joinedBlobs.end();
 		for(it = joinedBlobs.begin();it!=en;it++){
-// 			cvDrawContours( mask, (*it)->m_externalContour.GetContourPoints(), CV_RGB(255,255,255), CV_RGB(255,255,255),0, CV_FILLED, 8,
-// 				offset );
-// 			vector<t_PointList> conts;
-// 			conts.push_back((*it)->m_externalContour.GetContourPoints());
-			drawContours(mask_mat,(*it)->m_externalContour.GetContours(),-1,CV_RGB(255,255,255),CV_FILLED,8,noArray(),2147483647,offset);
+			drawContours(mask_mat,(*it)->m_externalContour.GetContours(),-1,CV_RGB(255,255,255),-1,8,noArray(),2147483647,offset);
 			t_CBlobContourList::iterator itint = (*it)->m_internalContours.begin();
 			while(itint != (*it)->m_internalContours.end() )
 			{
-// 				cvDrawContours( mask, (*itint).GetContourPoints(), CV_RGB(0,0,0), CV_RGB(0,0,0),0, CV_FILLED, 8,
-// 					offset );
-				drawContours(mask_mat,(*itint)->GetContours(),-1,CV_RGB(0,0,0),CV_FILLED,8,noArray(),2147483647,offset);
+				drawContours(mask_mat,(*itint)->GetContours(),-1,CV_RGB(0,0,0),-1,8,noArray(),2147483647,offset);
 				itint++;
 			}
 		}
 	}
-	else{
-		// draw contours on mask
-// 		cvDrawContours( mask, m_externalContour.GetContourPoints(), CV_RGB(255,255,255), CV_RGB(255,255,255),0, CV_FILLED, 8,
-// 						offset );
-// 		vector<t_PointList> conts;
-// 		conts.push_back(m_externalContour.GetContourPoints());
-		drawContours(mask_mat,m_externalContour.GetContours(),-1,CV_RGB(255,255,255),CV_FILLED,8,noArray(),2147483647,offset);
+	else{ 
+		drawContours(mask_mat,m_externalContour.GetContours(),-1,CV_RGB(255,255,255),-1,8,noArray(),2147483647,offset);
 		// draw internal contours
 		t_CBlobContourList::iterator it = m_internalContours.begin();
 		while(it != m_internalContours.end() )
 		{
-// 			cvDrawContours( mask, (*it).GetContourPoints(), CV_RGB(0,0,0), CV_RGB(0,0,0),0, CV_FILLED, 8,
-// 						offset );
-			drawContours(mask_mat,(*it)->GetContours(),-1,CV_RGB(0,0,0),CV_FILLED,8,noArray(),2147483647,offset);
+			drawContours(mask_mat,(*it)->GetContours(),-1,CV_RGB(0,0,0),-1,8,noArray(),2147483647,offset);
 			it++;
 		}
 	}
 
-	cvSetImageROI( image, m_boundingBox );
-	cvAvgSdv( image, &mean, &std, mask );
+
+	// cv::Mat imageCrop(&image, m_boundingBox);
+	cv::Mat imageCrop = (*image)(m_boundingBox);
+	cv::meanStdDev(imageCrop, mean, std, mask);
 	
 	m_meanGray = mean.val[0];
 	m_stdDevGray = std.val[0];
-
-	cvReleaseImage( &mask );
-	cvResetImageROI( image );
 
 	return m_meanGray;
 }
 
 double CBlob::Mean(Mat image ){
-	IplImage temp = (IplImage) image;
+	cv::Mat temp = (cv::Mat) image;
 	return Mean(&temp);
 }
-double CBlob::StdDev( IplImage *image )
+double CBlob::StdDev( cv::Mat *image )
 {
 	// call mean calculation (where also standard deviation is calculated)
 	Mean( image );
@@ -540,13 +526,13 @@ double CBlob::StdDev( IplImage *image )
 	return m_stdDevGray;
 }
 double CBlob::StdDev(Mat image){
-	IplImage temp = (IplImage) image;
+	cv::Mat temp = (cv::Mat) image;
 	return StdDev(&temp);
 }
 
 //void CBlob::MeanStdDev( Mat image, double *mean, double *stddev )
 //{
-//	IplImage temp = (IplImage) image;
+//	cv::Mat temp = (cv::Mat) image;
 //	Mean(&temp);
 //	*mean = m_meanGray;
 //	*stddev = m_stdDevGray;
@@ -564,23 +550,23 @@ void CBlob::MeanStdDev( Mat image, Scalar &mean, Scalar &stddev )
 	if(isJoined){
 		list<CBlob *>::iterator it,en = joinedBlobs.end();
 		for(it = joinedBlobs.begin();it!=en;it++){
-			drawContours(mask_mat,(*it)->m_externalContour.GetContours(),-1,CV_RGB(255,255,255),CV_FILLED,8,noArray(),2147483647,offset);
+			drawContours(mask_mat,(*it)->m_externalContour.GetContours(),-1,CV_RGB(255,255,255),-1,8,noArray(),2147483647,offset);
 			t_CBlobContourList::iterator itint = (*it)->m_internalContours.begin();
 			while(itint != (*it)->m_internalContours.end() )
 			{
-				drawContours(mask_mat,(*itint)->GetContours(),-1,CV_RGB(0,0,0),CV_FILLED,8,noArray(),2147483647,offset);
+				drawContours(mask_mat,(*itint)->GetContours(),-1,CV_RGB(0,0,0),-1,8,noArray(),2147483647,offset);
 				itint++;
 			}
 		}
 	}
 	else{
 		// draw contours on mask
-		drawContours(mask_mat,m_externalContour.GetContours(),-1,CV_RGB(255,255,255),CV_FILLED,8,noArray(),2147483647,offset);
+		drawContours(mask_mat,m_externalContour.GetContours(),-1,CV_RGB(255,255,255),-1,8,noArray(),2147483647,offset);
 		// draw internal contours
 		t_CBlobContourList::iterator it = m_internalContours.begin();
 		while(it != m_internalContours.end() )
 		{
-			drawContours(mask_mat,(*it)->GetContours(),-1,CV_RGB(0,0,0),CV_FILLED,8,noArray(),2147483647,offset);
+			drawContours(mask_mat,(*it)->GetContours(),-1,CV_RGB(0,0,0),-1,8,noArray(),2147483647,offset);
 			it++;
 		}
 	}
@@ -601,7 +587,7 @@ void CBlob::MeanStdDev( Mat image, Scalar &mean, Scalar &stddev )
 - DATA DE CREACI�: 2008/05/06
 - MODIFICACI�: Data. Autor. Descripci�.
 */
-CvRect CBlob::GetBoundingBox()
+cv::Rect CBlob::GetBoundingBox()
 {
 	// it is calculated?
 	if( m_boundingBox.width != -1 )
@@ -610,7 +596,7 @@ CvRect CBlob::GetBoundingBox()
 	}
 
 	if(isJoined){
-		CvRect bigRect;
+		cv::Rect bigRect;
 		bigRect.x = 1000000;
 		bigRect.y = 1000000;
 		bigRect.height = 0;
@@ -618,7 +604,7 @@ CvRect CBlob::GetBoundingBox()
 		list<CBlob *>::iterator it,en = joinedBlobs.end();
 		int maxX=0,maxY=0;
 		for(it = joinedBlobs.begin();it!=en;it++){
-			CvRect temp = (*it)->GetBoundingBox();
+			cv::Rect temp = (*it)->GetBoundingBox();
 			if(bigRect.x > temp.x){
 				bigRect.x = temp.x;
 			}
@@ -686,7 +672,7 @@ CvRect CBlob::GetBoundingBox()
 - MODIFICACI�: Data. Autor. Descripci�.
 - NOTA: Calculation is made using second order moment aproximation
 */
-CvBox2D CBlob::GetEllipse()
+cv::RotatedRect CBlob::GetEllipse()
 {
 	// it is calculated?
 	if( m_ellipse.size.width != -1 )
@@ -784,111 +770,86 @@ CvBox2D CBlob::GetEllipse()
 - MODIFICATION:
 	- sep/2013. Luca Nardelli. Added functionality to consider internal contours when filling the blob.
 */
-void CBlob::FillBlob( IplImage *image, CvScalar color, int offsetX , int offsetY, bool intContours, const IplImage *srcImage) 					  
-{
-	if(srcImage==NULL)
-		FillBlob(cvarrToMat(image),color,offsetX,offsetY,intContours,Mat());
-	else
-		FillBlob(cvarrToMat(image),color,offsetX,offsetY,intContours,cvarrToMat(srcImage));
-}
-void CBlob::FillBlob( Mat image, CvScalar color, int offsetX, int offsetY, bool intContours, const Mat srcImage){
-	CV_FUNCNAME("CBlob::FillBlob");
-	__CV_BEGIN__;
-	if(srcImage.data && intContours)
-		CV_ASSERT(image.size()==srcImage.size() && image.type() == srcImage.type());
-  {
-    Rect bbox = GetBoundingBox();
-    Point drawOffset(offsetX,offsetY);
-    Size imSz = image.size();
-    if(bbox.x+offsetX+bbox.width >= imSz.width){
-      bbox.width = imSz.width - bbox.x-offsetX;
-    }
-    else if(bbox.x+offsetX < 0){
-      bbox.x = -offsetX;
-      bbox.width= bbox.width +offsetX;
-    }
-    if(bbox.y+offsetY+bbox.height >= imSz.height){
-      bbox.height = imSz.height - bbox.y-offsetY;
-    }
-    else if(bbox.y+offsetY < 0){
-      bbox.y = -offsetY;
-      bbox.height= bbox.height +offsetY;
-    }
-    if(bbox.width <0 || bbox.height <0){
-      return;
-    }
-    if(bbox.width==0)
-      bbox.width++;
-    if(bbox.height==0)
-      bbox.height++;
-    if(isJoined){
-      list<CBlob *>::iterator itBlob=joinedBlobs.begin(),enBlob = joinedBlobs.end();
-      for(itBlob = joinedBlobs.begin();itBlob!=enBlob;itBlob++){
-        (*itBlob)->FillBlob(image,color,offsetX,offsetY,intContours,srcImage);
-      }
-      // 		if(intContours){
-      // 			Point offset(-bbox.x,-bbox.y);
-      // 			Size sz(bbox.width,bbox.height);
-      // 			Mat temp(sz,image.type());
-      // 			Mat mask(sz,CV_8UC1);
-      // 			mask.setTo(0);
-      // 			for(itBlob = joinedBlobs.begin();itBlob!=enBlob;itBlob++){
-      // 				CBlob *curBlob = *itBlob;
-      // 				t_CBlobContourList::iterator it = curBlob->m_internalContours.begin(),en = curBlob->m_internalContours.end();
-      // 				for(it;it!=en;it++){
-      // 					drawContours(mask,(*it)->GetContours(),-1,255,CV_FILLED,8,noArray(),2147483647,offset);
-      // 				}
-      // 			}
-      // 			srcImage(bbox).copyTo(temp,mask);
-      // 			for(itBlob = joinedBlobs.begin();itBlob!=enBlob;itBlob++){
-      // 				drawContours(image,(*itBlob)->m_externalContour.GetContours(),-1,color,CV_FILLED,8,noArray(),2147483647,drawOffset);
-      // 			}
-      // 			temp.copyTo(image(bbox+drawOffset),mask);
-      // 			for(itBlob = joinedBlobs.begin();itBlob!=enBlob;itBlob++){
-      // 				CBlob *curBlob = *itBlob;
-      // 				t_CBlobContourList::const_iterator it = curBlob->m_internalContours.begin(),en = curBlob->m_internalContours.end();
-      // 				for(it;it!=en;it++){
-      // 					drawContours(image,(*it)->GetContours(),-1,color,1,8,noArray(),2147483647,drawOffset);
-      // 				}
-      // 			}
-      // 		}
-      // 		else{
-      // 			for(itBlob = joinedBlobs.begin();itBlob!=enBlob;itBlob++){
-      // 				drawContours(image,(*itBlob)->m_externalContour.GetContours(),-1,color,CV_FILLED,8,noArray(),2147483647,drawOffset);
-      // 			}
-      // 		}
-    }
-    else{
-      if(intContours){
-        Point offset(-bbox.x,-bbox.y);
-        t_CBlobContourList::iterator it = m_internalContours.begin(),en = m_internalContours.end();
-        Mat temp(bbox.height,bbox.width,image.type());
-        drawContours(image,m_externalContour.GetContours(),-1,color,CV_FILLED,8,noArray(),2147483647,drawOffset);
-        if(srcImage.data){
-          Mat mask(bbox.height,bbox.width,CV_8UC1);
-          mask.setTo(0);
-          for(it;it!=en;it++){
-            drawContours(mask,(*it)->GetContours(),-1,255,CV_FILLED,8,noArray(),2147483647,offset);
-          }
-          srcImage(bbox).copyTo(temp,mask);
-          Mat image_roi = image(bbox+drawOffset);
-          temp.copyTo(image_roi,mask);
-        }
-        else{
-          for(it;it!=en;it++){
-            drawContours(image,(*it)->GetContours(),-1,CV_RGB(0,0,0),CV_FILLED,8,noArray(),2147483647,drawOffset);
-          }
-        }
-			
-        for(it=m_internalContours.begin();it!=en;it++){
-          drawContours(image,(*it)->GetContours(),-1,color,1,8,noArray(),2147483647,drawOffset);
-        }
-      }
-      else
-        drawContours(image,m_externalContour.GetContours(),-1,color,CV_FILLED,8,noArray(),2147483647,drawOffset);
-    }
-  }
-	__CV_END__;
+// void CBlob::FillBlob( cv::Mat image, cv::Scalar color, int offsetX , int offsetY, bool intContours, const cv::Mat srcImage) 					  
+// {
+// 	if(srcImage==NULL)
+// 		FillBlob(image,color,offsetX,offsetY,intContours,Mat());
+// 	else
+// 		FillBlob(image,color,offsetX,offsetY,intContours, srcImage);
+// }
+
+void CBlob::FillBlob( Mat image, cv::Scalar color, int offsetX, int offsetY, bool intContours, const Mat srcImage){
+	
+	try {
+		if(srcImage.data && intContours)
+		{
+			if (!(image.size() == srcImage.size() && image.type() == srcImage.type())) {
+				throw std::runtime_error("Image sizes or types do not match");
+			}
+
+			Rect bbox = GetBoundingBox();
+			Point drawOffset(offsetX,offsetY);
+			Size imSz = image.size();
+			if(bbox.x+offsetX+bbox.width >= imSz.width){
+			bbox.width = imSz.width - bbox.x-offsetX;
+			}
+			else if(bbox.x+offsetX < 0){
+			bbox.x = -offsetX;
+			bbox.width= bbox.width +offsetX;
+			}
+			if(bbox.y+offsetY+bbox.height >= imSz.height){
+			bbox.height = imSz.height - bbox.y-offsetY;
+			}
+			else if(bbox.y+offsetY < 0){
+			bbox.y = -offsetY;
+			bbox.height= bbox.height +offsetY;
+			}
+			if(bbox.width <0 || bbox.height <0){
+			return;
+			}
+			if(bbox.width==0)
+			bbox.width++;
+			if(bbox.height==0)
+			bbox.height++;
+			if(isJoined){
+			list<CBlob *>::iterator itBlob=joinedBlobs.begin(),enBlob = joinedBlobs.end();
+			for(itBlob = joinedBlobs.begin();itBlob!=enBlob;itBlob++){
+				(*itBlob)->FillBlob(image,color,offsetX,offsetY,intContours,srcImage);
+			}
+			}
+			else{
+			if(intContours){
+				Point offset(-bbox.x,-bbox.y);
+				t_CBlobContourList::iterator it = m_internalContours.begin(),en = m_internalContours.end();
+				Mat temp(bbox.height,bbox.width,image.type());
+				drawContours(image,m_externalContour.GetContours(),-1,color,-1,8,noArray(),2147483647,drawOffset);
+				if(srcImage.data){
+				Mat mask(bbox.height,bbox.width,CV_8UC1);
+				mask.setTo(0);
+				for(it;it!=en;it++){
+					drawContours(mask,(*it)->GetContours(),-1,255,-1,8,noArray(),2147483647,offset);
+				}
+				srcImage(bbox).copyTo(temp,mask);
+				Mat image_roi = image(bbox+drawOffset);
+				temp.copyTo(image_roi,mask);
+				}
+				else{
+				for(it;it!=en;it++){
+					drawContours(image,(*it)->GetContours(),-1,CV_RGB(0,0,0),-1,8,noArray(),2147483647,drawOffset);
+				}
+				}
+					
+				for(it=m_internalContours.begin();it!=en;it++){
+				drawContours(image,(*it)->GetContours(),-1,color,1,8,noArray(),2147483647,drawOffset);
+				}
+			}
+			else
+				drawContours(image,m_externalContour.GetContours(),-1,color,-1,8,noArray(),2147483647,drawOffset);
+			}
+		}
+	} catch (const cv::Exception& e) {
+		// Handle or log the exception
+	}
 }
 
 /**

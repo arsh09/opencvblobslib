@@ -97,7 +97,7 @@ private:
 	//! Computed perimeter from contour
 	double m_perimeter;
 	//! Computed moments from contour
-	CvMoments m_moments;
+	cv::Moments m_moments;
    	static const t_PointList EMPTY_LIST;
 
 	//This value is actually used mainly in the detection part, for the labels.

@@ -125,7 +125,7 @@ public:
 		m_xBorder = true;
 		m_yBorder = true;
 	}
-	CBlobGetExterior(IplImage *mask, bool xBorder = true, bool yBorder = true)
+	CBlobGetExterior(cv::Mat *mask, bool xBorder = true, bool yBorder = true)
 	{
 		m_mask = mask;
 		m_xBorder = xBorder;
@@ -140,7 +140,7 @@ public:
 		return "CBlobGetExterior";
 	}
 private:
-	IplImage *m_mask;
+	cv::Mat *m_mask;
 	bool m_xBorder, m_yBorder;
 };
 
@@ -153,7 +153,7 @@ public:
 	{
 		m_image = NULL;
 	}
-	CBlobGetMean( IplImage *image )
+	CBlobGetMean( cv::Mat *image )
 	{
 		m_image = image;
 	};
@@ -168,7 +168,7 @@ public:
 	}
 private:
 
-	IplImage *m_image;
+	cv::Mat *m_image;
 };
 
 //! Classe per calcular la desviaci� est�ndard dels nivells de gris d'un blob
@@ -180,7 +180,7 @@ public:
 	{
 		m_image = NULL;
 	}
-	CBlobGetStdDev( IplImage *image )
+	CBlobGetStdDev( cv::Mat *image )
 	{
 		m_image = image;
 	};
@@ -194,7 +194,7 @@ public:
 	}
 private:
 
-	IplImage *m_image;
+	cv::Mat *m_image;
 
 };
 
@@ -487,7 +487,7 @@ public:
 		m_xBorder = true;
 		m_yBorder = true;
 	}
-	CBlobGetExternPerimeter( IplImage *mask, bool xBorder = true, bool yBorder = true )
+	CBlobGetExternPerimeter( cv::Mat *mask, bool xBorder = true, bool yBorder = true )
 	{
 		m_mask = mask;
 		m_xBorder = xBorder;
@@ -502,7 +502,7 @@ public:
 		return "CBlobGetExternPerimeter";
 	}
 private:
-	IplImage *m_mask;
+	cv::Mat *m_mask;
 	bool m_xBorder, m_yBorder;
 };
 
@@ -519,7 +519,7 @@ public:
 		m_xBorder = false;
 		m_yBorder = false;
 	}
-	CBlobGetExternPerimeterRatio( IplImage *mask, bool xBorder = true, bool yBorder = true )
+	CBlobGetExternPerimeterRatio( cv::Mat *mask, bool xBorder = true, bool yBorder = true )
 	{
 		m_mask = mask;
 		m_xBorder = xBorder;
@@ -537,7 +537,7 @@ public:
 		return "CBlobGetExternPerimeterRatio";
 	}
 private:
-	IplImage *m_mask;
+	cv::Mat *m_mask;
 	bool  m_xBorder, m_yBorder;
 };
 
@@ -554,7 +554,7 @@ public:
 		m_xBorder = false;
 		m_yBorder = false;
 	}
-	CBlobGetExternHullPerimeterRatio( IplImage *mask, bool xBorder = true, bool yBorder = true )
+	CBlobGetExternHullPerimeterRatio( cv::Mat *mask, bool xBorder = true, bool yBorder = true )
 	{
 		m_mask = mask;
 		m_xBorder = xBorder;
@@ -575,7 +575,7 @@ public:
 		return "CBlobGetExternHullPerimeterRatio";
 	}
 private:
-	IplImage *m_mask;
+	cv::Mat *m_mask;
 	bool  m_xBorder, m_yBorder;
 
 };
@@ -617,7 +617,7 @@ class CBlobGetMajorAxisLength: public COperadorBlob
 public:
     double operator()(CBlob &blob)
 	{
-		CvBox2D elipse = blob.GetEllipse();
+		cv::RotatedRect elipse = blob.GetEllipse();
 
 		return elipse.size.width;
 	}
@@ -636,7 +636,7 @@ public:
 	{
 		if( blob.Area()==0.0 ) return 0.0;
 
-		CvBox2D elipse = blob.GetEllipse();
+		cv::RotatedRect elipse = blob.GetEllipse();
 		double ratioAreaElipseAreaTaca = ( (elipse.size.width/2.0)
 										   *
 										   (elipse.size.height/2.0)
@@ -660,7 +660,7 @@ class CBlobGetMinorAxisLength: public COperadorBlob
 public:
     double operator()(CBlob &blob)
 	{
-		CvBox2D elipse = blob.GetEllipse();
+		cv::RotatedRect elipse = blob.GetEllipse();
 
 		return elipse.size.height;
 	}
@@ -677,7 +677,7 @@ class CBlobGetOrientation: public COperadorBlob
 public:
     double operator()(CBlob &blob)
 	{
-		CvBox2D elipse = blob.GetEllipse();
+		cv::RotatedRect elipse = blob.GetEllipse();
 /*
 		if( elipse.angle > 180.0 )
 			return (( elipse.angle - 180.0 )* DEGREE2RAD);
@@ -749,7 +749,7 @@ public:
 	}
 	//! Constructor: indiquem el punt
 	//! Constructor: sets the point
-	CBlobGetXYInside( cv::Point2D32f p )
+	CBlobGetXYInside( cv::Point2f p )
 	{
 		m_p = p;
 	};
@@ -762,7 +762,7 @@ public:
 private:
 	//! punt que considerem
 	//! point to be considered
-	cv::Point2D32f m_p;
+	cv::Point2f m_p;
 };
 
 #endif	//!BLOB_OPERATORS_H_INCLUDED
