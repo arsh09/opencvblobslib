@@ -29,7 +29,7 @@ set(CMAKE_DEBUG_POSTFIX "_d")
 
 option(BUILD_SHARED_LIBS "build with shared libraries" OFF)
 
-find_package( OpenCV REQUIRED )
+find_package(OpenCV 4.2.0 REQUIRED )
 
 IF(WIN32)
     set(PTHREADS_INCLUDE_DIR "" CACHE PATH "Pthreads Include Directory")

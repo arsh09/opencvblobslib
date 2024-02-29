@@ -3,7 +3,7 @@
 #include <fstream>
 #include "blob.h"
 #include "BlobResult.h"
-#include "highgui.h" //include it to use GUI functions.
+#include <opencv2/highgui.hpp>
 
 const int NUMCORES = 2;
 using namespace std;
@@ -19,73 +19,12 @@ void testJoin();
 void testRandomImage(); //Generate a random image and test blobs.
 
 int main(){
-//  	testTimes(500,3000,250,"TempiHR",20);
-  	//testTimes(1000,1000,20,"TempiLR",40);
-	//testTimes(10,2000,50,"TempiRandom",15);
-	//opencvLogo();
-	//test();
 	testJoin();
-	//testMio();
-	//testRandomImage();
 
 	cout <<"Press a key to continue..."<<endl;
 	cin.get();
 	return 0;
 }
-
-/*void testTimes(int startRes,int endRes, int step,string fileName, int iter){
-	ofstream fileOutST(fileName+"ST.txt");
-	ofstream fileOutMT(fileName+"MT.txt");
-	ofstream fileOutInfo(fileName+"Info.txt");
-	char CPUBrandString[49];
-	__cpuid((int*)CPUBrandString, 0x80000002);
-	__cpuid((int*)(CPUBrandString+16), 0x80000003);
-	__cpuid((int*)(CPUBrandString+32), 0x80000004);
-	CPUBrandString[48] = 0;
-	fileOutInfo << CPUBrandString;
-	int64 time;
-	double elapsed;
-	RNG random;
-	Mat color_img = imread("testImage.png");
-	Mat temp_color_img;
-	CBlobResult res;
-	cvtColor(color_img,color_img,CV_BGR2GRAY);
-	for(int i=0;i<=(endRes-startRes)/step;i++){
-		int resolution = step*i+startRes;
-		temp_color_img = color_img.clone();
-		resize(color_img,temp_color_img,Size(resolution,resolution),0,0,INTER_NEAREST);
-		threshold(temp_color_img,temp_color_img,250,255,CV_THRESH_BINARY_INV);
-  		//namedWindow("image",CV_WINDOW_NORMAL + CV_GUI_EXPANDED + CV_WINDOW_KEEPRATIO);
-  		//imshow("image",temp_color_img);
-  		//waitKey();
-		cout <<"RISOLUZIONE: " << resolution<<"x"<<resolution<<endl;
-		fileOutST << resolution;
-		Mat mt;
- 		for(int j=0;j<iter;j++){
- 			time=getTickCount();
- 			CBlobResult res(temp_color_img,mt,1);
- 			elapsed =  (getTickCount()-time)/getTickFrequency();
- 			cout <<j<<"/"<<iter<<"\tTempo Single Thread: " <<elapsed<<"\t Nblobs: "<<res.GetNumBlobs()<<"\tTime: "<<endl;
- 			fileOutST <<"\t" << elapsed;
- 		}
-		fileOutST << "\n";
-		fileOutMT << resolution;
-
-		//cout <<"MULTITHREAD"<<endl;
-		for(int j=0;j<iter;j++){
-			time=getTickCount();
-			CBlobResult res(temp_color_img,mt,NUMCORES);
-			//CBlobResult res(&(IplImage)temp_color_img,NULL,0,NUMCORES);
-			elapsed =  (getTickCount()-time)/getTickFrequency();
-			cout <<j<<"/"<<iter<<"\tTempo Multi Thread: " <<elapsed<<"\t Nblobs: "<<res.GetNumBlobs()<<"\tTime: "<<endl;
-			fileOutMT <<"\t" << elapsed;
-		}
-		fileOutMT << "\n";
-	}
-	fileOutST.close();
-	fileOutMT.close();
-	fileOutInfo.close();
-}*/
 
 void test()
 {
@@ -93,20 +32,20 @@ void test()
 	RNG random;
 	Mat color_img = imread("opencvblobslibBIG.png");
 	//resize(color_img,color_img,Size(IMSIZE,IMSIZE),0,0,INTER_LINEAR);
-	namedWindow("Color Image",CV_WINDOW_NORMAL);
-	namedWindow("Gray Image",CV_WINDOW_NORMAL);
-	namedWindow("Binary Image",CV_WINDOW_NORMAL);
-	namedWindow("Blobs Image",CV_WINDOW_NORMAL);
+	namedWindow("Color Image",cv::WINDOW_NORMAL);
+	namedWindow("Gray Image",cv::WINDOW_NORMAL);
+	namedWindow("Binary Image",cv::WINDOW_NORMAL);
+	namedWindow("Blobs Image",cv::WINDOW_NORMAL);
 	imshow("Color Image",color_img);
 	Mat binary_img(color_img.size(),CV_8UC1);
-	cvtColor(color_img,binary_img,CV_BGR2GRAY);
+	cvtColor(color_img,binary_img,cv::COLOR_BGR2GRAY);
 	imshow("Gray Image",binary_img);
-	threshold(binary_img,binary_img,250,255,CV_THRESH_BINARY_INV);
+	threshold(binary_img,binary_img,250,255,cv::THRESH_BINARY_INV);
 	imshow("Binary Image",binary_img);
 	CBlobResult blobs;
 	color_img.setTo(Vec3b(0,0,0));
 	time=getTickCount();
-	IplImage temp = (IplImage)binary_img;
+	cv::Mat temp = (cv::Mat)binary_img;
 	blobs = CBlobResult(&temp,NULL,1);
 	cout <<"found: "<<blobs.GetNumBlobs()<<endl;
 	cout <<"Tempo ST: "<<(getTickCount() -time)/getTickFrequency()<<endl;
@@ -156,8 +95,8 @@ void opencvLogo()
 {
 	Mat im = imread("opencvblobslibBIG.png");
 	Mat img;
-	cvtColor(im,img,CV_BGR2GRAY);
-	threshold(img,img,254,255,CV_THRESH_BINARY_INV);
+	cvtColor(im,img,cv::COLOR_BGR2GRAY);
+	threshold(img,img,254,255,cv::THRESH_BINARY_INV);
 	int64 time = getTickCount();
 	CBlobResult res(img,Mat(),NUMCORES);
 	cout << "Tempo: " << (getTickCount() - time)/getTickFrequency();
@@ -175,8 +114,8 @@ void opencvLogo()
 void testJoin(){
 	Mat im = imread("opencvblobslibBIG.png");
 	Mat img,imt,im2;
-	cvtColor(im,img,CV_BGR2GRAY);
-	threshold(img,imt,254,255,CV_THRESH_BINARY_INV);
+	cvtColor(im,img,cv::COLOR_BGR2GRAY);
+	threshold(img,imt,254,255,cv::THRESH_BINARY_INV);
 	//imt = imt(Rect(30,50,100,100));
 	imshow("binImage",imt);
 	CBlobResult res(imt,Mat(),NUMCORES);
@@ -295,15 +234,15 @@ void testJoin(){
 void testRandomImage()
 {
 	cout << "Random test: Press esc to quit"<<endl;
-	namedWindow("Binary Image",CV_WINDOW_NORMAL);
-	namedWindow("Blobs Image",CV_WINDOW_NORMAL);
+	namedWindow("Binary Image",cv::WINDOW_NORMAL);
+	namedWindow("Blobs Image",cv::WINDOW_NORMAL);
 	Mat image(256,256,CV_8UC1),nulMask;
 	Mat out(image.size(),CV_8UC3);
 	RNG rand(0);
 	while(true){
 		out.setTo(0);
 		rand.fill(image,CV_8UC1,0,256);
-		threshold(image,image,127,255,CV_THRESH_BINARY);
+		threshold(image,image,127,255,cv::THRESH_BINARY);
 		CBlobResult res(image,nulMask,2);
 		cout << "Nblobs: "<< res.GetNumBlobs()<<endl;
 		for(int i=0;i<res.GetNumBlobs();i++){
