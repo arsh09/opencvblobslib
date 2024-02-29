@@ -32,7 +32,7 @@ CBlob::CBlob()
 	isJoined=false;
 	startPassed=false;
 }
-CBlob::CBlob( t_labelType id, CvPoint startPoint, CvSize originalImageSize ):m_externalContour(startPoint,originalImageSize)
+CBlob::CBlob( t_labelType id, cv::Point startPoint, CvSize originalImageSize ):m_externalContour(startPoint,originalImageSize)
 {
 	m_externalContour.parent=this;
 	m_id = id;
@@ -460,7 +460,7 @@ double CBlob::Mean( IplImage *image )
 	// Create a mask with same size as blob bounding box
 	IplImage *mask;
 	CvScalar mean, std;
-	CvPoint offset;
+	cv::Point offset;
 
 	GetBoundingBox();
 	

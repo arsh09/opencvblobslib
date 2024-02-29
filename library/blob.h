@@ -18,8 +18,10 @@ MODIFICATIONS (Modification, Author, Date):
 #ifndef CBLOB_INSPECTA_INCLUDED
 #define CBLOB_INSPECTA_INCLUDED
 class CBlob;
-#include "opencv/cxcore.h"
-#include "opencv2/opencv.hpp"
+
+#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp> 
+
 #include "BlobLibraryConfiguration.h"
 #include "BlobContour.h"
 #include <deque>
@@ -44,7 +46,7 @@ class CBlob
 	friend class myCompLabeler;
 public:
 	CBlob();
-	CBlob( t_labelType id, CvPoint startPoint, CvSize originalImageSize );
+	CBlob( t_labelType id, cv::Point startPoint, CvSize originalImageSize );
 	~CBlob();
 
 	//! Copy constructor

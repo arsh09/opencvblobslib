@@ -749,7 +749,7 @@ public:
 	}
 	//! Constructor: indiquem el punt
 	//! Constructor: sets the point
-	CBlobGetXYInside( CvPoint2D32f p )
+	CBlobGetXYInside( cv::Point2D32f p )
 	{
 		m_p = p;
 	};
@@ -762,7 +762,7 @@ public:
 private:
 	//! punt que considerem
 	//! point to be considered
-	CvPoint2D32f m_p;
+	cv::Point2D32f m_p;
 };
 
 #endif	//!BLOB_OPERATORS_H_INCLUDED

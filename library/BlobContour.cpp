@@ -11,7 +11,7 @@ CBlobContour::CBlobContour()
 	m_moments.m00 = -1;
 	parent=NULL;
 }
-CBlobContour::CBlobContour(CvPoint startPoint, const Size &imageRes):m_contour(1)
+CBlobContour::CBlobContour(cv::Point startPoint, const Size &imageRes):m_contour(1)
 {
 	
 	m_startPoint.x = startPoint.x;
@@ -72,17 +72,17 @@ CBlobContour& CBlobContour::operator=( const CBlobContour &source )
 
 
 /**
-- FUNCIÓ: AddChainCode
+- FUNCIï¿½: AddChainCode
 - FUNCIONALITAT: Add chain code to contour
-- PARÀMETRES:
+- PARï¿½METRES:
 	- 
 - RESULTAT:
 	- 
 - RESTRICCIONS:
 	- 
 - AUTOR: rborras
-- DATA DE CREACIÓ: 2008/05/06
-- MODIFICACIÓ: Data. Autor. Descripció.
+- DATA DE CREACIï¿½: 2008/05/06
+- MODIFICACIï¿½: Data. Autor. Descripciï¿½.
 */
 void CBlobContour::AddChainCode(t_chainCode chaincode)
 {
@@ -97,17 +97,17 @@ void CBlobContour::Reset()
 }
 
 /**
-- FUNCIÓ: GetPerimeter
+- FUNCIï¿½: GetPerimeter
 - FUNCIONALITAT: Get perimeter from chain code. Diagonals sum sqrt(2) and horizontal and vertical codes 1
-- PARÀMETRES:
+- PARï¿½METRES:
 	- 
 - RESULTAT:
 	- 
 - RESTRICCIONS:
 	- 
 - AUTOR: rborras
-- DATA DE CREACIÓ: 2008/04/30
-- MODIFICACIÓ: Data. Autor. Descripció.
+- DATA DE CREACIï¿½: 2008/04/30
+- MODIFICACIï¿½: Data. Autor. Descripciï¿½.
 - NOTA: Algorithm derived from "Methods to estimate area and perimeters of blob-like objects: A comparison", L.Yang
 */
 double CBlobContour::GetPerimeter()
@@ -126,17 +126,17 @@ double CBlobContour::GetPerimeter()
 }
 
 /**
-- FUNCIÓ: GetArea
+- FUNCIï¿½: GetArea
 - FUNCIONALITAT: Computes area from chain code
-- PARÀMETRES:
+- PARï¿½METRES:
 	- 
 - RESULTAT:
 	- May give negative areas for clock wise contours
 - RESTRICCIONS:
 	- 
 - AUTOR: rborras
-- DATA DE CREACIÓ: 2008/04/30
-- MODIFICACIÓ: Data. Autor. Descripció.
+- DATA DE CREACIï¿½: 2008/04/30
+- MODIFICACIï¿½: Data. Autor. Descripciï¿½.
 - NOTA: Algorithm derived from "Properties of contour codes", G.R. Wilson
 */
 double CBlobContour::GetArea()
@@ -218,7 +218,7 @@ void CBlobContour::ShiftBlobContour(int x,int y)
 }
 
 
-t_chainCode points2ChainCode( CvPoint p1, CvPoint p2 )
+t_chainCode points2ChainCode( cv::Point p1, cv::Point p2 )
 {
 	//	/* Luca Nardelli & Saverio Murgia
 	//	Freeman Chain Code:	
@@ -246,14 +246,14 @@ t_chainCode points2ChainCode( CvPoint p1, CvPoint p2 )
 	else
 		return 200;
 }
-CvPoint chainCode2Point(CvPoint origin,t_chainCode code){
+cv::Point chainCode2Point(cv::Point origin,t_chainCode code){
 	//	/* Luca Nardelli & Saverio Murgia
 	//	Freeman Chain Code:	
 	//		321		Values indicate the chain code used to identify next pixel location.
 	//		4-0		If I join 2 blobs I can't just append the 2nd blob chain codes, since they will still start
 	//		567		from the 1st blob start point
 	//	*/
-	CvPoint pt = origin;
+	cv::Point pt = origin;
 	switch(code){
 	case 0:pt.x++;break;
 	case 1:pt.x++;pt.y--;break;
